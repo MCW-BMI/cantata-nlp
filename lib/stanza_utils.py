@@ -99,7 +99,7 @@ SU/utz/rankin
 
 
 def makeTag(tagElement, tagType, matched_text, startPos, endPos, tokenCounter):
-    tag = "<" + tagElement + " id=\"P" + tokenCounter + "\" start=\"" + startPos + "\" end=\"" + endPos + "\" text=\"" + matched_text + "\" TYPE=\"" + tagType + "\" comment=\"\" />";
+    tag = "<" + tagElement + " id=\"P" + str(tokenCounter) + "\" start=\"" + str(startPos ) + "\" end=\"" + str(endPos) + "\" text=\"" + matched_text + "\" TYPE=\"" + tagType + "\" comment=\"\" />";
     print("tag: " + tag);
     return tag
 
@@ -128,10 +128,44 @@ def prcess_xml_file(entry, output_dir, nlp):
             print("Tokens")
             for token in sent.tokens:
                 print(f'\ttoken: {token.text}\tner: {token.ner}\t start {token.start_char}\tend {token.end_char}')
-            for token in sent.ents:
-                if token.type == 'PERSON' or token.type == 'DATE':
-                    print(f'\tentity: {token.text}\tner: {token.type}\t start {token.start_char}\tend {token.end_char}')
-                    token_list.append(makeTag(tagElement, tagType,  matched_text, startPos , endPos, tokenCOunter))
+            for entity in sent.ents:
+                print("Entities");
+                print(f'\tentity: {entity.text}\tner: {entity.type}\t start {entity.start_char}\tend {entity.end_char}')
+                if entity.type == 'PERSON' :
+                    token_list.append(makeTag('NAME', 'PATIENT', entity.text, entity.start_char , entity.end_char, counter))
+                    counter = counter + 1
+                # if entity.type == 'DATE':
+                #     token_list.append(makeTag('DATE', 'DATE', entity.text, entity.start_char, entity.end_char, counter))
+                #     counter = counter + 1
+                if entity.type == 'CARDINAL':
+                    if len ( entity.text ) == 7:
+                        token_list.append(makeTag('ID', 'MEDICALRECORD', entity.text, entity.start_char, entity.end_char, counter))
+                        counter = counter + 1
+    return token_list
+
+
+def create_output_cd2h(output_dir, entry, token_list):
+
+    file = open(entry, "r")
+    file_text = file.read()
+    # print(file_text)
+    root = ET.fromstring(file_text)
+    # print(root)
+    # Get text from within XML
+    counter = 0
+
+    for tag in root.iter('TEXT') :
+        text = tag.text
+
+    out_file = open(output_dir + "/" + entry.name, "w")
+    out_file.write("""<?xml version="1.0" encoding="UTF-8" ?>\n<deIdi2b2>\n<TEXT><![CDATA[""");
+    out_file.write( text);
+    out_file.write("]]></TEXT><TAGS>\n");
+    for token in token_list:
+        print(token)
+        out_file.write(token + "\n");
+    out_file.write("</TAGS>\n</deIdi2b2>\n");
+    out_file.close()
 
 
 def run_ner_cd2h(input_dir, output_dir) :
@@ -145,7 +179,12 @@ def run_ner_cd2h(input_dir, output_dir) :
     stanza.download('en')  # download English model
     nlp = stanza.Pipeline('en', processors='tokenize,ner')  # initialize English neural pipeline
     entries = os.scandir(input_dir)
+
     for entry in entries:
-      print (f"Processing input file : {entry.path} {entry.name}")
-      prcess_xml_file(entry, output_dir, nlp)
-      sys.exit(1)
+        print (f"Processing input file : {entry.path} {entry.name}")
+        token_list = prcess_xml_file(entry, output_dir, nlp)
+        for token in token_list:
+            print("TOKEN "+ token)
+        create_output_cd2h( output_dir, entry, token_list)
+
+    sys.exit(1)
