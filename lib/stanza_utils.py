@@ -10,14 +10,16 @@ def run_test_ner():
     Run a quick internal test of the software
     :return:
     """
+    # This note is a fake report
+
     text = """
 Record date: 2063-12-13
 
 
 
 
-NAME:     Umphrey, Tammy 
-MRN:       0942207
+NAME:     Doe, Jane 
+MRN:       98765432
 
 The patient is here as a walk-in.  Her spouse is present.
 
@@ -45,7 +47,7 @@ Lungs - clear bilateral breath sounds.  Cor - RRR, S1, S2, without murmur or S3
 noted.  Back - slightly bent gait.  Tenderness over lower sacrum.  No asymmetry or
 obvious deformity.  
 
-X-ray of sacrum 12/13/63 - could not see fracture as per my reading.
+X-ray of sacrum 01/19/64 - could not see fracture as per my reading.
 
 ASSESSMENT AND PLAN:  
 
