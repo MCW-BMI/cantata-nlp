@@ -2,6 +2,7 @@ import click
 import lib.__init__ as init
 import lib.stanza_utils as stanza_utils
 # Copyright
+from lib import spacy_utils
 
 version_num = ""
 
@@ -15,24 +16,33 @@ def cli(version):
 
 
 @cli.command()
-def run_test_ner():
+@click.option("--lib", default="spacy")
+def run_test_ner(lib):
     """
     Run a test of the software on self contained test data showing tokens and entities
     :param dbfile:
     :return:
     """
-    stanza_utils.run_test_ner()
+    if lib == 'spacy':
+        spacy_utils.run_test_ner()
+    else:
+        stanza_utils.run_test_ner()
 
 @cli.command()
 @click.argument("input_dir", nargs=1)
 @click.argument("output_dir", nargs=1)
-def run_ner_cd2h(input_dir, output_dir):
+@click.option("--lib", default="spacy")
+def run_ner_cd2h(input_dir, output_dir, lib):
     """
     Run a test of the software on self contained test data showing tokens and entities
     :param dbfile:
     :return:
     """
-    stanza_utils.run_ner_cd2h(input_dir, output_dir)
+    if lib == "spacy":
+        spacy_utils.run_cd2h(input_dir, output_dir)
+    else:
+        stanza_utils.run_ner_cd2h(input_dir, output_dir)
+
 
 if __name__ == "__main__":
     version_num = str(init.__VERSION__)

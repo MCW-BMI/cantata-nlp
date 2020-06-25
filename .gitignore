@@ -31,7 +31,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -155,5 +154,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-/output_dir/
+/output_dir_stanza/
 /.idea/
+/output_dir_stanza/
+/output_dir_spacy/
