@@ -12,6 +12,7 @@ from spacy.matcher import Matcher
 from spacy.pipeline import EntityRuler
 from spacy.tokenizer import Tokenizer
 from spacy.tokens import Span
+from pathlib import Path
 
 def custom_tokenizer(nlp, infix_reg):
     """
@@ -227,19 +228,25 @@ def process_xml_file(entry, output_dir, nlp):
         doc = nlp(tag.text)
         # for ent in doc.ents:
         #     print(f"ENTITY: {ent.text} with label: {ent.label_} from {ent.start_char} to {ent.end_char}")
-        for entity in doc.ents:
-            print("Entities");
-            print(f'\tentity: {entity.text}\tner: {entity.label_}\t start {entity.start_char}\tend {entity.end_char}')
-            # if entity.type == 'PERSON' :
-            #     token_list.append(makeTag('NAME', 'PATIENT', entity.text, entity.start_char , entity.end_char, counter))
-            #     counter = counter + 1
-            if entity.label_ == 'MDATE'  :
-                token_list.append(makeTag('DATE', 'DATE', entity.text, entity.start_char, entity.end_char, counter))
-                counter = counter + 1
-            # if entity.type == 'CARDINAL':
-            #     if len ( entity.text ) == 7:
-            #         token_list.append(makeTag('ID', 'MEDICALRECORD', entity.text, entity.start_char, entity.end_char, counter))
-            #         counter = counter + 1
+        #print(doc)
+        print( "Text:")
+        print ( [t.text for t in doc])
+        for sent in doc.sents:
+            # print(f"S: {sent.text}" )
+
+            for entity in sent.ents:
+                print("\tE:");
+                print(f'\tentity: {entity.text}\tner: {entity.label_}\t start {entity.start_char}\tend {entity.end_char}')
+                # if entity.type == 'PERSON' :
+                #     token_list.append(makeTag('NAME', 'PATIENT', entity.text, entity.start_char , entity.end_char, counter))
+                #     counter = counter + 1
+                if entity.label_ == 'MDATE'  :
+                    token_list.append(makeTag('DATE', 'DATE', entity.text, entity.start_char, entity.end_char, counter))
+                    counter = counter + 1
+                # if entity.type == 'CARDINAL':
+                #     if len ( entity.text ) == 7:
+                #         token_list.append(makeTag('ID', 'MEDICALRECORD', entity.text, entity.start_char, entity.end_char, counter))
+                #         counter = counter + 1
     return token_list
 
 def create_output_cd2h(output_dir, entry, token_list):
@@ -265,7 +272,7 @@ def create_output_cd2h(output_dir, entry, token_list):
     out_file.write("</TAGS>\n</deIdi2b2>\n");
     out_file.close()
 
-def run_cd2h(input_dir, output_dir):
+def run_cd2h(input_dir, output_dir, single_file_name):
         """
         Process a set of input files per CD2H and the 2014 I2b2 challange and output results that can be evaluated
 
@@ -276,18 +283,26 @@ def run_cd2h(input_dir, output_dir):
         # Set up NLP
         nlp = spacy.load("en_core_web_md")
 
-        infix_re = re.compile(r'''[-/,]''')
+        # This breaks up words on dash slash and periods ( from end of sentences ) for better parsing
+        infix_re = re.compile(r'''[-/,.]''')
         nlp.tokenizer = custom_tokenizer(nlp, infix_re)
+
         ruler = EntityRuler(nlp, overwrite_ents=True).from_disk("./spacy_patterns.jsonl")
         nlp.add_pipe(ruler)
         # Dir of XML to process
-        entries = os.scandir(input_dir)
-
-        for entry in entries:
-            print(f"Processing input file : {entry.path} {entry.name}")
+        if single_file_name:
+            entry = Path(f"{output_dir}/{ single_file_name}" )
             token_list = process_xml_file(entry, output_dir, nlp)
             for token in token_list:
                 print("TOKEN " + token)
             create_output_cd2h(output_dir, entry, token_list)
+        else:
+            entries = os.scandir(input_dir)
+            for entry in entries:
+                print(f"Processing input file : {entry.path} {entry.name}")
+                token_list = process_xml_file(entry, output_dir, nlp)
+                for token in token_list:
+                    print("TOKEN " + token)
+                create_output_cd2h(output_dir, entry, token_list)
 
         sys.exit(0)
