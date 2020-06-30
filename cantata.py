@@ -31,15 +31,16 @@ def run_test_ner(lib):
 @cli.command()
 @click.argument("input_dir", nargs=1)
 @click.argument("output_dir", nargs=1)
+@click.option("--file")
 @click.option("--lib", default="spacy")
-def run_ner_cd2h(input_dir, output_dir, lib):
+def run_ner_cd2h(input_dir, output_dir, lib, file):
     """
     Run a test of the software on self contained test data showing tokens and entities
     :param dbfile:
     :return:
     """
     if lib == "spacy":
-        spacy_utils.run_cd2h(input_dir, output_dir)
+        spacy_utils.run_cd2h(input_dir, output_dir, file)
     else:
         stanza_utils.run_ner_cd2h(input_dir, output_dir)
 

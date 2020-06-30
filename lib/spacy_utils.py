@@ -287,7 +287,7 @@ def run_cd2h(input_dir, output_dir, single_file_name):
         infix_re = re.compile(r'''[-/,.]''')
         nlp.tokenizer = custom_tokenizer(nlp, infix_re)
 
-        ruler = EntityRuler(nlp, overwrite_ents=True).from_disk("./spacy_patterns.jsonl")
+        ruler = EntityRuler(nlp, overwrite_ents=True,  validate=True ).from_disk("./spacy_patterns.jsonl")
         nlp.add_pipe(ruler)
         # Dir of XML to process
         if single_file_name:
